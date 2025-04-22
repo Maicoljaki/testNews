@@ -6,15 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast"
-import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
-const LoginPage = () => {
+const SignUpPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
     const supabaseClient = useSupabaseClient();
-    const session = useSession();
     const { toast } = useToast()
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -22,7 +21,7 @@ const LoginPage = () => {
         setError('');
 
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
+            const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
                 password: password,
             });
@@ -30,15 +29,15 @@ const LoginPage = () => {
             if (error) {
                 setError(error.message);
                 toast({
-                    title: "Error signing in",
+                    title: "Error signing up",
                     description: error.message,
                     variant: "destructive",
                 })
             } else {
-                router.push('/');
+                router.push('/login');
                 toast({
-                    title: "Signed in successfully!",
-                    description: "You are now being redirected.",
+                    title: "Signed up successfully!",
+                    description: "Please check your email to confirm your registration.",
                 })
             }
         } catch (err: any) {
@@ -55,7 +54,7 @@ const LoginPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-background">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>Admin Login</CardTitle>
+                    <CardTitle>Admin Sign Up</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,9 +84,6 @@ const LoginPage = () => {
                         </div>
                         {error && <p className="text-red-500 text-sm">{error}</p>}
                         <Button type="submit" className="w-full">
-                            Login
-                        </Button>
-                        <Button type="button" variant="secondary" className="w-full" onClick={() => router.push('/signup')}>
                             Sign Up
                         </Button>
                     </form>
@@ -97,4 +93,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default SignUpPage;

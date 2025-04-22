@@ -13,21 +13,29 @@ import {
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
+import { Button } from "@/components/ui/button"
 
 const AdminDashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
     const router = useRouter();
+    const session = useSession();
+    const supabaseClient = useSupabaseClient();
 
     useEffect(() => {
         // Check if the user is logged in
-        const token = localStorage.getItem('authToken');
-        if (token) {
+        if (session) {
             setIsLoggedIn(true);
         } else {
             // Redirect to the login page if not logged in
             router.push('/login');
         }
-    }, [router]);
+    }, [session, router]);
+
+    const handleSignOut = async () => {
+        await supabaseClient.auth.signOut();
+        router.push('/login');
+    };
 
     if (!isLoggedIn) {
         // This is a loading state or the redirect will happen quickly
@@ -50,7 +58,9 @@ const AdminDashboard = () => {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <div>Footer content</div>
+            <Button onClick={handleSignOut} variant="outline">
+                Sign Out
+            </Button>
         </SidebarFooter>
       </Sidebar>
       <div className="pl-64">

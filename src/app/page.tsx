@@ -1,5 +1,10 @@
 import AdminDashboard from '@/components/AdminDashboard';
+import { AuthGuard } from '@/components/AuthGuard';
 
 export default function Home() {
-  return <AdminDashboard />;
+  return (
+      <AuthGuard>
+          <AdminDashboard />
+      </AuthGuard>
+  );
 }
