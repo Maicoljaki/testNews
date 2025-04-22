@@ -186,7 +186,7 @@ const BlogManagementPage = () => {
                     variant: "destructive",
                 });
             } else {
-                const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${data.path}`;
+                const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${data.path}`;
                 setNewImage(imageUrl);
                 toast({
                     title: "Image uploaded successfully!",
