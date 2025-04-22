@@ -184,7 +184,7 @@ const BlogManagementPage = () => {
                 console.error("Supabase image upload error:", error);
                 toast({
                     title: "Image upload failed",
-                    description: "There was an error uploading the image. Please try again.",
+                    description: error.message ? error.message : "There was an error uploading the image. Please try again.",
                     variant: "destructive",
                 });
             } else {
