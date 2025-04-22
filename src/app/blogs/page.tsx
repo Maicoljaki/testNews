@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table"
 import { suggestKeywords } from '@/ai/flows/suggest-keywords';
 import { useToast } from "@/hooks/use-toast"
-import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
 import { ImageIcon } from 'lucide-react';
 
 
@@ -40,6 +40,8 @@ const BlogManagementPage = () => {
     const [keywords, setKeywords] = useState<string[]>([]);
     const { toast } = useToast()
     const supabaseClient = useSupabaseClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     useEffect(() => {
         loadBlogPosts();
@@ -186,7 +188,7 @@ const BlogManagementPage = () => {
                     variant: "destructive",
                 });
             } else {
-                const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${data.path}`;
+                const imageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${data.path}`;
                 setNewImage(imageUrl);
                 toast({
                     title: "Image uploaded successfully!",
