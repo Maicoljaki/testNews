@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
 import { Button } from "@/components/ui/button"
+import { FileText } from "lucide-react";
 
 const AdminDashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -52,7 +53,9 @@ const AdminDashboard = () => {
           <SidebarGroup>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton href="/blogs">Blog Management</SidebarMenuButton>
+                <SidebarMenuButton href="/blogs">
+                 <FileText className="mr-2 h-4 w-4" /> Blog Management
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>

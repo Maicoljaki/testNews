@@ -17,25 +17,29 @@ import {
 } from "@/components/ui/table"
 import { suggestKeywords } from '@/ai/flows/suggest-keywords';
 import { useToast } from "@/hooks/use-toast"
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { ImageIcon } from 'lucide-react';
+
 
 interface BlogPost {
     id: string;
     image: string;
     title: string;
-    description: string;
+    content: string;
 }
 
 const BlogManagementPage = () => {
     const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
     const [newImage, setNewImage] = useState('');
     const [newTitle, setNewTitle] = useState('');
-    const [newDescription, setNewDescription] = useState('');
+    const [newContent, setNewContent] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editedImage, setEditedImage] = useState('');
     const [editedTitle, setEditedTitle] = useState('');
-    const [editedDescription, setEditedDescription] = useState('');
+    const [editedContent, setEditedContent] = useState('');
     const [keywords, setKeywords] = useState<string[]>([]);
     const { toast } = useToast()
+    const supabaseClient = useSupabaseClient();
 
     useEffect(() => {
         loadBlogPosts();
@@ -71,7 +75,7 @@ const BlogManagementPage = () => {
     };
 
     const handleCreate = () => {
-        if (!newImage || !newTitle || !newDescription) {
+        if (!newImage || !newTitle || !newContent) {
             alert('Please fill in all fields.');
             return;
         }
@@ -80,7 +84,7 @@ const BlogManagementPage = () => {
             id: Math.random().toString(36).substring(2, 15),
             image: newImage,
             title: newTitle,
-            description: newDescription,
+            content: newContent,
         };
 
         const updatedPosts = [...blogPosts, newPost];
@@ -89,7 +93,7 @@ const BlogManagementPage = () => {
 
         setNewImage('');
         setNewTitle('');
-        setNewDescription('');
+        setNewContent('');
     };
 
     const handleEdit = (id: string) => {
@@ -98,12 +102,12 @@ const BlogManagementPage = () => {
             setEditingId(id);
             setEditedImage(postToEdit.image);
             setEditedTitle(postToEdit.title);
-            setEditedDescription(postToEdit.description);
+            setEditedContent(postToEdit.content);
         }
     };
 
     const handleUpdate = () => {
-        if (!editedImage || !editedTitle || !editedDescription) {
+        if (!editedImage || !editedTitle || !editedContent) {
             alert('Please fill in all fields.');
             return;
         }
@@ -114,7 +118,7 @@ const BlogManagementPage = () => {
                     ...post,
                     image: editedImage,
                     title: editedTitle,
-                    description: editedDescription,
+                    content: editedContent,
                 };
             }
             return post;
@@ -126,7 +130,7 @@ const BlogManagementPage = () => {
         setEditingId(null);
         setEditedImage('');
         setEditedTitle('');
-        setEditedDescription('');
+        setEditedContent('');
     };
 
     const handleDelete = (id: string) => {
@@ -137,7 +141,7 @@ const BlogManagementPage = () => {
 
     const handleSuggestKeywords = async () => {
         try {
-            const blogContent = `${newTitle} ${newDescription}`;
+            const blogContent = `${newTitle} ${newContent}`;
             const result = await suggestKeywords({ blogContent: blogContent });
             setKeywords(result.keywords);
             toast({
@@ -154,6 +158,51 @@ const BlogManagementPage = () => {
         }
     };
 
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+    
+        if (!file) {
+            toast({
+                title: "No image selected",
+                description: "Please select an image to upload.",
+                variant: "destructive",
+            });
+            return;
+        }
+    
+        try {
+            const { data, error } = await supabaseClient.storage
+                .from('blog-images')
+                .upload(`${newTitle}-${file.name}`, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+    
+            if (error) {
+                console.error("Supabase image upload error:", error);
+                toast({
+                    title: "Image upload failed",
+                    description: "There was an error uploading the image. Please try again.",
+                    variant: "destructive",
+                });
+            } else {
+                const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${data.path}`;
+                setNewImage(imageUrl);
+                toast({
+                    title: "Image uploaded successfully!",
+                    description: "The image has been uploaded and is ready to use.",
+                });
+            }
+        } catch (uploadError) {
+            console.error("Image upload error:", uploadError);
+            toast({
+                title: "Image upload failed",
+                description: "There was an error uploading the image. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
     return (
         <div className="p-6">
             <Card>
@@ -162,16 +211,23 @@ const BlogManagementPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-foreground">
-                            Image URL
-                        </label>
-                        <Input
-                            type="text"
-                            value={newImage}
-                            onChange={(e) => setNewImage(e.target.value)}
-                            className="mt-1"
+                    <label className="block text-sm font-medium text-foreground">
+                        Image
+                    </label>
+                    <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="mt-1"
+                    />
+                    {newImage && (
+                        <img
+                            src={newImage}
+                            alt="Uploaded"
+                            className="mt-2 w-32 h-32 object-cover rounded"
                         />
-                    </div>
+                    )}
+                </div>
                     <div>
                         <label className="block text-sm font-medium text-foreground">
                             Title
@@ -185,11 +241,11 @@ const BlogManagementPage = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-foreground">
-                            Description
+                            Content
                         </label>
                         <Textarea
-                            value={newDescription}
-                            onChange={(e) => setNewDescription(e.target.value)}
+                            value={newContent}
+                            onChange={(e) => setNewContent(e.target.value)}
                             className="mt-1"
                         />
                     </div>
@@ -227,7 +283,7 @@ const BlogManagementPage = () => {
                                 <TableRow>
                                     <TableHead>Image</TableHead>
                                     <TableHead>Title</TableHead>
-                                    <TableHead>Description</TableHead>
+                                    <TableHead>Content</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -238,7 +294,7 @@ const BlogManagementPage = () => {
                                             <img src={post.image} alt={post.title} className="w-20 h-20 object-cover rounded" />
                                         </TableCell>
                                         <TableCell>{post.title}</TableCell>
-                                        <TableCell>{post.description}</TableCell>
+                                        <TableCell>{post.content}</TableCell>
                                         <TableCell className="text-right">
                                             {editingId === post.id ? (
                                                 <div className="flex justify-end gap-2">
@@ -292,11 +348,11 @@ const BlogManagementPage = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-foreground">
-                                    Description
+                                    Content
                                 </label>
                                 <Textarea
-                                    value={editedDescription}
-                                    onChange={(e) => setEditedDescription(e.target.value)}
+                                    value={editedContent}
+                                    onChange={(e) => setEditedContent(e.target.value)}
                                     className="mt-1"
                                 />
                             </div>
