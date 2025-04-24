@@ -19,6 +19,7 @@ import { suggestKeywords } from '@/ai/flows/suggest-keywords';
 import { useToast } from "@/hooks/use-toast"
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
 import { ImageIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 
 interface BlogPost {
@@ -43,6 +44,8 @@ const BlogManagementPage = () => {
     const supabaseClient = useSupabaseClient();
     const session = useSession();
     const [userId, setUserId] = useState<string | null>(null);
+    const router = useRouter();
+
 
     useEffect(() => {
         const fetchUserId = async () => {
@@ -269,6 +272,9 @@ const BlogManagementPage = () => {
 
     return (
         <div className="p-6">
+             <Button onClick={() => router.push('/')} variant="secondary">
+                Back to Dashboard
+            </Button>
             <Card>
                 <CardHeader>
                     <CardTitle>Create New Blog Post</CardTitle>
