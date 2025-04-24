@@ -53,10 +53,10 @@ const BlogManagementPage = () => {
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error("Error fetching blog posts:", error);
+                console.error("Error fetching blog posts:", error.message);
                 toast({
                     title: "Error fetching blog posts",
-                    description: "Failed to load blog posts from Supabase.",
+                    description: "Failed to load blog posts from Supabase. " + error.message,
                     variant: "destructive",
                 });
             }
@@ -64,11 +64,11 @@ const BlogManagementPage = () => {
             if (data) {
                 setBlogPosts(data);
             }
-        } catch (error) {
-            console.error("Unexpected error loading blog posts:", error);
+        } catch (error: any) {
+            console.error("Unexpected error loading blog posts:", error.message);
             toast({
                 title: "Unexpected error",
-                description: "An unexpected error occurred while loading blog posts.",
+                description: "An unexpected error occurred while loading blog posts. " + error.message,
                 variant: "destructive",
             });
         }
@@ -92,10 +92,10 @@ const BlogManagementPage = () => {
                 .select();
 
             if (error) {
-                console.error("Error creating blog post:", error);
+                console.error("Error creating blog post:", error.message);
                 toast({
                     title: "Error creating blog post",
-                    description: "Failed to create blog post in Supabase.",
+                    description: "Failed to create blog post in Supabase. " + error.message,
                     variant: "destructive",
                 });
             } else {
@@ -108,11 +108,11 @@ const BlogManagementPage = () => {
                     description: "The blog post was successfully created.",
                 });
             }
-        } catch (error) {
-            console.error("Unexpected error creating blog post:", error);
+        } catch (error: any) {
+            console.error("Unexpected error creating blog post:", error.message);
             toast({
                 title: "Unexpected error",
-                description: "An unexpected error occurred while creating the blog post.",
+                description: "An unexpected error occurred while creating the blog post. " + error.message,
                 variant: "destructive",
             });
         }
@@ -152,10 +152,10 @@ const BlogManagementPage = () => {
                 .select();
 
             if (error) {
-                console.error("Error updating blog post:", error);
+                console.error("Error updating blog post:", error.message);
                 toast({
                     title: "Error updating blog post",
-                    description: "Failed to update blog post in Supabase.",
+                    description: "Failed to update blog post in Supabase. " + error.message,
                     variant: "destructive",
                 });
             } else {
@@ -169,11 +169,11 @@ const BlogManagementPage = () => {
                     description: "The blog post was successfully updated.",
                 });
             }
-        } catch (error) {
-            console.error("Unexpected error updating blog post:", error);
+        } catch (error: any) {
+            console.error("Unexpected error updating blog post:", error.message);
             toast({
                 title: "Unexpected error",
-                description: "An unexpected error occurred while updating the blog post.",
+                description: "An unexpected error occurred while updating the blog post. " + error.message,
                 variant: "destructive",
             });
         }
@@ -188,10 +188,10 @@ const BlogManagementPage = () => {
                 .eq('id', id);
 
             if (error) {
-                console.error("Error deleting blog post:", error);
+                console.error("Error deleting blog post:", error.message);
                 toast({
                     title: "Error deleting blog post",
-                    description: "Failed to delete blog post from Supabase.",
+                    description: "Failed to delete blog post from Supabase. " + error.message,
                     variant: "destructive",
                 });
             } else {
@@ -201,11 +201,11 @@ const BlogManagementPage = () => {
                     description: "The blog post was successfully deleted.",
                 });
             }
-        } catch (error) {
-            console.error("Unexpected error deleting blog post:", error);
+        } catch (error: any) {
+            console.error("Unexpected error deleting blog post:", error.message);
             toast({
                 title: "Unexpected error",
-                description: "An unexpected error occurred while deleting the blog post.",
+                description: "An unexpected error occurred while deleting the blog post. " + error.message,
                 variant: "destructive",
             });
         }
@@ -220,11 +220,11 @@ const BlogManagementPage = () => {
                 title: "Keywords suggested!",
                 description: "Check the keywords section below.",
             })
-        } catch (error) {
-            console.error("Failed to suggest keywords:", error);
+        } catch (error: any) {
+            console.error("Failed to suggest keywords:", error.message);
             toast({
                 title: "Error suggesting keywords",
-                description: "Please check the console for details.",
+                description: "Please check the console for details. " + error.message,
                 variant: "destructive",
             })
         }
