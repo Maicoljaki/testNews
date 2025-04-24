@@ -42,7 +42,18 @@ const BlogManagementPage = () => {
     const { toast } = useToast()
     const supabaseClient = useSupabaseClient();
     const session = useSession();
-    const userId = session?.user?.id;
+    const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUserId = async () => {
+            // Fetch the user ID if the session is available
+            if (session?.user?.id) {
+                setUserId(session.user.id);
+            }
+        };
+
+        fetchUserId();
+    }, [session]);
 
     useEffect(() => {
         loadBlogPosts();
