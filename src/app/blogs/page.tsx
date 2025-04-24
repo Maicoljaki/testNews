@@ -160,50 +160,7 @@ const BlogManagementPage = () => {
         }
     };
 
-    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
     
-        if (!file) {
-            toast({
-                title: "No image selected",
-                description: "Please select an image to upload.",
-                variant: "destructive",
-            });
-            return;
-        }
-    
-        try {
-            const { data, error } = await supabaseClient.storage
-                .from('blog-images')
-                .upload(`${newTitle}-${file.name}`, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
-    
-            if (error) {
-                console.error("Supabase image upload error:", error);
-                toast({
-                    title: "Image upload failed",
-                    description: error.message ? error.message : "There was an error uploading the image. Please try again.",
-                    variant: "destructive",
-                });
-            } else {
-                const imageUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${data.path}`;
-                setNewImage(imageUrl);
-                toast({
-                    title: "Image uploaded successfully!",
-                    description: "The image has been uploaded and is ready to use.",
-                });
-            }
-        } catch (uploadError) {
-            console.error("Image upload error:", uploadError);
-            toast({
-                title: "Image upload failed",
-                description: "There was an error uploading the image. Please try again.",
-                variant: "destructive",
-            });
-        }
-    };
 
     return (
         <div className="p-6">
@@ -213,23 +170,23 @@ const BlogManagementPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                    <label className="block text-sm font-medium text-foreground">
-                        Image
-                    </label>
-                    <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="mt-1"
-                    />
-                    {newImage && (
-                        <img
-                            src={newImage}
-                            alt="Uploaded"
-                            className="mt-2 w-32 h-32 object-cover rounded"
+                        <label className="block text-sm font-medium text-foreground">
+                            Image URL
+                        </label>
+                        <Input
+                            type="text"
+                            value={newImage}
+                            onChange={(e) => setNewImage(e.target.value)}
+                            className="mt-1"
                         />
-                    )}
-                </div>
+                        {newImage && (
+                            <img
+                                src={newImage}
+                                alt="Uploaded"
+                                className="mt-2 w-32 h-32 object-cover rounded"
+                            />
+                        )}
+                    </div>
                     <div>
                         <label className="block text-sm font-medium text-foreground">
                             Title
