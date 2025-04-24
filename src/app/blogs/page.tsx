@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table"
 import { suggestKeywords } from '@/ai/flows/suggest-keywords';
 import { useToast } from "@/hooks/use-toast"
-import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
 import { ImageIcon } from 'lucide-react';
 
 
@@ -26,6 +26,7 @@ interface BlogPost {
     image: string;
     title: string;
     content: string;
+    user_id: string;
 }
 
 const BlogManagementPage = () => {
@@ -40,6 +41,8 @@ const BlogManagementPage = () => {
     const [keywords, setKeywords] = useState<string[]>([]);
     const { toast } = useToast()
     const supabaseClient = useSupabaseClient();
+    const session = useSession();
+    const userId = session?.user?.id;
 
     useEffect(() => {
         loadBlogPosts();
@@ -85,10 +88,20 @@ const BlogManagementPage = () => {
             return;
         }
 
+        if (!userId) {
+            console.error("User not authenticated.");
+            toast({
+                title: "Authentication Error",
+                description: "User not authenticated. Please log in again.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         try {
             const { data, error } = await supabaseClient
                 .from('blog_posts')
-                .insert([{ image: newImage, title: newTitle, content: newContent }])
+                .insert([{ image: newImage, title: newTitle, content: newContent, user_id: userId }])
                 .select();
 
             if (error) {
@@ -134,6 +147,17 @@ const BlogManagementPage = () => {
             return;
         }
 
+         if (!userId) {
+            console.error("User not authenticated.");
+            toast({
+                title: "Authentication Error",
+                description: "User not authenticated. Please log in again.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+
         if (!editingId) {
             console.error("No editing ID set.");
             toast({
@@ -147,7 +171,7 @@ const BlogManagementPage = () => {
         try {
             const { data, error } = await supabaseClient
                 .from('blog_posts')
-                .update({ image: editedImage, title: editedTitle, content: editedContent })
+                .update({ image: editedImage, title: editedTitle, content: editedContent, user_id: userId })
                 .eq('id', editingId)
                 .select();
 
