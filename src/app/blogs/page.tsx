@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table"
 import { suggestKeywords } from '@/ai/flows/suggest-keywords';
 import { useToast } from "@/hooks/use-toast"
-import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import { ImageIcon } from 'lucide-react';
 
 
@@ -40,62 +40,82 @@ const BlogManagementPage = () => {
     const [keywords, setKeywords] = useState<string[]>([]);
     const { toast } = useToast()
     const supabaseClient = useSupabaseClient();
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     useEffect(() => {
         loadBlogPosts();
     }, []);
 
-    const loadBlogPosts = () => {
+    const loadBlogPosts = async () => {
         try {
-            const data = localStorage.getItem('blogPosts');
+            const { data, error } = await supabaseClient
+                .from('blog_posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching blog posts:", error);
+                toast({
+                    title: "Error fetching blog posts",
+                    description: "Failed to load blog posts from Supabase.",
+                    variant: "destructive",
+                });
+            }
+
             if (data) {
-                setBlogPosts(JSON.parse(data));
+                setBlogPosts(data);
             }
         } catch (error) {
-            console.error("Failed to load blog posts:", error);
+            console.error("Unexpected error loading blog posts:", error);
             toast({
-                title: "Error loading blog posts",
-                description: "Please check the console for details.",
+                title: "Unexpected error",
+                description: "An unexpected error occurred while loading blog posts.",
                 variant: "destructive",
-            })
+            });
         }
     };
 
-    const saveBlogPosts = (posts: BlogPost[]) => {
-        try {
-            localStorage.setItem('blogPosts', JSON.stringify(posts));
-        } catch (error) {
-            console.error("Failed to save blog posts:", error);
-            toast({
-                title: "Error saving blog posts",
-                description: "Please check the console for details.",
-                variant: "destructive",
-            })
-        }
+
+    const saveBlogPosts = async () => {
+        loadBlogPosts();
     };
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (!newImage || !newTitle || !newContent) {
             alert('Please fill in all fields.');
             return;
         }
 
-        const newPost = {
-            id: Math.random().toString(36).substring(2, 15),
-            image: newImage,
-            title: newTitle,
-            content: newContent,
-        };
+        try {
+            const { data, error } = await supabaseClient
+                .from('blog_posts')
+                .insert([{ image: newImage, title: newTitle, content: newContent }])
+                .select();
 
-        const updatedPosts = [...blogPosts, newPost];
-        setBlogPosts(updatedPosts);
-        saveBlogPosts(updatedPosts);
-
-        setNewImage('');
-        setNewTitle('');
-        setNewContent('');
+            if (error) {
+                console.error("Error creating blog post:", error);
+                toast({
+                    title: "Error creating blog post",
+                    description: "Failed to create blog post in Supabase.",
+                    variant: "destructive",
+                });
+            } else {
+                setNewImage('');
+                setNewTitle('');
+                setNewContent('');
+                await saveBlogPosts();
+                toast({
+                    title: "Blog post created!",
+                    description: "The blog post was successfully created.",
+                });
+            }
+        } catch (error) {
+            console.error("Unexpected error creating blog post:", error);
+            toast({
+                title: "Unexpected error",
+                description: "An unexpected error occurred while creating the blog post.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleEdit = (id: string) => {
@@ -108,37 +128,87 @@ const BlogManagementPage = () => {
         }
     };
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         if (!editedImage || !editedTitle || !editedContent) {
             alert('Please fill in all fields.');
             return;
         }
 
-        const updatedPosts = blogPosts.map(post => {
-            if (post.id === editingId) {
-                return {
-                    ...post,
-                    image: editedImage,
-                    title: editedTitle,
-                    content: editedContent,
-                };
+        if (!editingId) {
+            console.error("No editing ID set.");
+            toast({
+                title: "Error updating blog post",
+                description: "No editing ID was set. Please try again.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('blog_posts')
+                .update({ image: editedImage, title: editedTitle, content: editedContent })
+                .eq('id', editingId)
+                .select();
+
+            if (error) {
+                console.error("Error updating blog post:", error);
+                toast({
+                    title: "Error updating blog post",
+                    description: "Failed to update blog post in Supabase.",
+                    variant: "destructive",
+                });
+            } else {
+                setEditingId(null);
+                setEditedImage('');
+                setEditedTitle('');
+                setEditedContent('');
+                await saveBlogPosts();
+                toast({
+                    title: "Blog post updated!",
+                    description: "The blog post was successfully updated.",
+                });
             }
-            return post;
-        });
-
-        setBlogPosts(updatedPosts);
-        saveBlogPosts(updatedPosts);
-
-        setEditingId(null);
-        setEditedImage('');
-        setEditedTitle('');
-        setEditedContent('');
+        } catch (error) {
+            console.error("Unexpected error updating blog post:", error);
+            toast({
+                title: "Unexpected error",
+                description: "An unexpected error occurred while updating the blog post.",
+                variant: "destructive",
+            });
+        }
     };
 
-    const handleDelete = (id: string) => {
-        const updatedPosts = blogPosts.filter(post => post.id !== id);
-        setBlogPosts(updatedPosts);
-        saveBlogPosts(updatedPosts);
+
+    const handleDelete = async (id: string) => {
+        try {
+            const { data, error } = await supabaseClient
+                .from('blog_posts')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                console.error("Error deleting blog post:", error);
+                toast({
+                    title: "Error deleting blog post",
+                    description: "Failed to delete blog post from Supabase.",
+                    variant: "destructive",
+                });
+            } else {
+                await saveBlogPosts();
+                toast({
+                    title: "Blog post deleted!",
+                    description: "The blog post was successfully deleted.",
+                });
+            }
+        } catch (error) {
+            console.error("Unexpected error deleting blog post:", error);
+            toast({
+                title: "Unexpected error",
+                description: "An unexpected error occurred while deleting the blog post.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleSuggestKeywords = async () => {
