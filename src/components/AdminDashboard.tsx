@@ -16,9 +16,22 @@ import { useRouter } from 'next/navigation';
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react'
 import { Button } from "@/components/ui/button"
 import { FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+
+
+interface BlogPost {
+    id: string;
+    image: string;
+    title: string;
+    content: string;
+    user_id: string;
+}
+
 
 const AdminDashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
     const router = useRouter();
     const session = useSession();
     const supabaseClient = useSupabaseClient();
@@ -32,6 +45,30 @@ const AdminDashboard = () => {
             router.push('/login');
         }
     }, [session, router]);
+
+    useEffect(() => {
+        loadBlogPosts();
+    }, []);
+
+    const loadBlogPosts = async () => {
+        try {
+            const { data, error } = await supabaseClient
+                .from('blog_posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching blog posts:", error.message);
+            }
+
+            if (data) {
+                setBlogPosts(data);
+            }
+        } catch (error: any) {
+            console.error("Unexpected error loading blog posts:", error.message);
+        }
+    };
+
 
     const handleSignOut = async () => {
         await supabaseClient.auth.signOut();
@@ -66,10 +103,28 @@ const AdminDashboard = () => {
             </Button>
         </SidebarFooter>
       </Sidebar>
-      <div className="pl-64">
+      <div className="pl-64 p-6">
         {/* Main content area */}
         <h1>Welcome to the Admin Dashboard</h1>
         <p>Manage your blog content here.</p>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {blogPosts.map((post) => (
+                <Card key={post.id}>
+                    <CardHeader>
+                        <CardTitle>{post.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <img
+                            src={post.image}
+                            alt={post.title}
+                            className="mb-4 w-full h-40 object-cover rounded-md"
+                        />
+                        <p>{post.content.substring(0, 100)}...</p>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
       </div>
     </SidebarProvider>
   );
