@@ -90,8 +90,8 @@ const AdminDashboard = () => {
           <SidebarGroup>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton href="/blogs">
-                 <FileText className="mr-2 h-4 w-4" /> Blog Management
+                <SidebarMenuButton onClick={() => router.push('/blogs')}>
+                  <FileText className="mr-2 h-4 w-4" /> Blog Management
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
